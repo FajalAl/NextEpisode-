@@ -4,9 +4,6 @@
     "version": "1.0",
     "description": "Automatically plays the next episode when available.",
     "permissions": ["activeTab", "scripting"],
-    "background": {
-      "service_worker": "background.js"
-    },
     "content_scripts": [
       {
         "matches": ["<all_urls>"],
