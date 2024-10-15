@@ -1,18 +1,25 @@
 {
     "manifest_version": 3,
-    "name": "Auto Next Episode",
+    "name": "Netflix Automation",
+    "description": "Automatically skip intro, recap, and click next episode on Netflix.",
     "version": "1.0",
-    "description": "Automatically plays the next episode when available.",
-    "permissions": ["activeTab", "scripting"],
+    "permissions": ["storage", "activeTab", "scripting"],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon.png"
+      }
+    },
     "content_scripts": [
       {
-        "matches": ["<all_urls>"],
+        "matches": ["*://*.netflix.com/*"],
         "js": ["content.js"]
       }
-    ],
-    "icons": {
-      "48": "icon.png",
-      "128": "icon.png"
-    }
+    ]
   }
   

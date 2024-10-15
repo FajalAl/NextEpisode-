@@ -1,59 +1,39 @@
-// Function to click the "Next Episode" button/link when available.
-function clickNextEpisode() {
-    try {
-      // Look for elements that might indicate the next episode link.
-      const nextEpisodeButton = Array.from(document.querySelectorAll('a, button, div, span'))
-        .find(el => {
-          const text = el.textContent.trim().toLowerCase();
-          const href = el.getAttribute('href') || ''; // Check if href exists.
-  
-          // Match text or href containing 'next', 'ep', 'episode', or a '>' symbol.
-          return /next|ep|episode|>/.test(text) || /next|ep|episode/.test(href);
-        });
-  
-      if (nextEpisodeButton) {
-        console.log('Next episode found! Redirecting...');
-        nextEpisodeButton.click();
-      } else {
-        console.log('No next episode link found.');
-      }
-    } catch (error) {
-      console.error('Error in clickNextEpisode:', error);
-    }
-  }
-  
-  // Function to monitor the video element for when it ends.
-  function monitorVideo() {
-    try {
-      const video = document.querySelector('video');
-  
-      if (video) {
-        video.addEventListener('ended', () => {
-          console.log('Video ended. Attempting to play next episode...');
-          clickNextEpisode();
-        });
-      } else {
-        console.log('No video element found.');
-      }
-    } catch (error) {
-      console.error('Error in monitorVideo:', error);
-    }
-  }
-  
-  // Function to check for blocked resources or CORS issues.
-  function checkBlockedResources() {
-    window.addEventListener('error', (event) => {
-      if (event.message.includes('ERR_BLOCKED_BY_CLIENT')) {
-        console.warn('A resource was blocked by an extension or browser setting.');
-      } else if (event.message.includes('CORS')) {
-        console.warn('CORS policy blocked a request. Check server configurations.');
-      }
+const INTRO_UIA = "player-skip-intro";
+const RECAP_UIA = "player-skip-recap";
+const NEXT_UIA = "next-episode-seamless-button";
+const NEXT_DRAIN_UIA = "next-episode-seamless-button-draining";
+
+const BUTTONS = [INTRO_UIA, RECAP_UIA, NEXT_UIA, NEXT_DRAIN_UIA];
+
+// Function to click buttons like "Skip Intro", "Skip Recap", and "Next Episode".
+async function skipper() {
+  try {
+    // Fetch stored preferences (e.g., whether to skip intro, recap, or next episode).
+    chrome.storage.local.get(["skipIntro", "skipRecap", "skipNext"], (settings) => {
+      const mapper = {
+        [INTRO_UIA]: settings.skipIntro,
+        [RECAP_UIA]: settings.skipRecap,
+        [NEXT_UIA]: settings.skipNext,
+        [NEXT_DRAIN_UIA]: settings.skipNext,
+      };
+
+      BUTTONS.forEach((uia) => {
+        const button = Array.from(document.getElementsByTagName("button"))
+          .find(elem => elem.getAttribute("data-uia") === uia);
+
+        if (button && mapper[uia]) {
+          console.log(`Clicking button: ${uia}`);
+          button.click();
+        }
+      });
     });
+  } catch (error) {
+    console.error('Error in skipper function:', error);
   }
-  
-  // Run necessary functions once the page loads.
-  window.addEventListener('load', () => {
-    monitorVideo();
-    checkBlockedResources();
-  });
-  
+}
+
+// Ensure the script only runs on Netflix.
+if (document.location.host.includes(".netflix.")) {
+  // Run the skipper function every 500ms to detect and click buttons.
+  setInterval(skipper, 500);
+}
